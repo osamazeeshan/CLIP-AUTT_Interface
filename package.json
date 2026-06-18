@@ -1,0 +1,10 @@
+{
+  "name": "clip-autt-interface",
+  "version": "1.0.0",
+  "description": "Browser interface for recording webcam videos and sending them to a CLIP-AUTT model for pain/stress/neutral recognition.",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 5173",
+    "build": "node scripts/validate-static-app.mjs"
+  }
+}
