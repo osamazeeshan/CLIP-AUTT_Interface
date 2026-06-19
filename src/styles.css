@@ -28,7 +28,7 @@ button, input { font: inherit; }
   max-width: 1080px;
   margin: 0 auto;
   color: #172033;
-  font-size: clamp(1.9rem, 4vw, 3.9rem);
+  font-size: clamp(1.55rem, 3vw, 2.8rem);
   line-height: 1.04;
   letter-spacing: -.06em;
 }
