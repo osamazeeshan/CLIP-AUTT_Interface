@@ -14,10 +14,8 @@ const state = {
 
 const els = {
   liveVideo: document.querySelector('#liveVideo'),
-  previewVideo: document.querySelector('#previewVideo'),
   annotatedVideo: document.querySelector('#annotatedVideo'),
   livePlaceholder: document.querySelector('#livePlaceholder'),
-  previewPlaceholder: document.querySelector('#previewPlaceholder'),
   annotatedPlaceholder: document.querySelector('#annotatedPlaceholder'),
   cameraError: document.querySelector('#cameraError'),
   statusText: document.querySelector('#statusText'),
@@ -42,21 +40,21 @@ function formatSeconds(totalSeconds) {
 }
 
 function setStatus(message) {
-  els.statusText.textContent = message;
+  if (els.statusText) els.statusText.textContent = message;
 }
 
 function setRecordingUi(isRecording) {
   els.recordVideo.disabled = !state.stream || isRecording;
   els.stopRecording.disabled = !isRecording;
   els.analyzeVideo.disabled = !state.recordedBlob || isRecording;
-  els.recordingTime.hidden = !isRecording;
-  els.recordingPill.hidden = !isRecording;
+  if (els.recordingTime) els.recordingTime.hidden = !isRecording;
+  if (els.recordingPill) els.recordingPill.hidden = !isRecording;
 }
 
 function updateTimer() {
   const text = formatSeconds(state.elapsed);
-  els.recordingTime.textContent = `Recording time: ${text}`;
-  els.recordingPill.textContent = `● Recording ${text}`;
+  if (els.recordingTime) els.recordingTime.textContent = `Recording time: ${text}`;
+  if (els.recordingPill) els.recordingPill.textContent = `● Recording ${text}`;
 }
 
 async function turnOnCamera() {
@@ -98,10 +96,8 @@ function startRecording() {
     state.recordedBlob = new Blob(state.chunks, { type: mimeType });
     if (state.recordedUrl) URL.revokeObjectURL(state.recordedUrl);
     state.recordedUrl = URL.createObjectURL(state.recordedBlob);
-    els.previewVideo.src = state.recordedUrl;
-    els.previewPlaceholder.hidden = true;
     els.analyzeVideo.disabled = false;
-    setStatus('Recording saved. Review it, then choose Recognize Pain / Stress.');
+    setStatus('Recording saved. Choose Recognize Pain / Stress.');
   };
 
   state.recorder.start();
@@ -120,17 +116,21 @@ function stopRecording() {
 }
 
 function clearPrediction() {
-  els.predictionEmpty.hidden = false;
-  els.predictionResult.hidden = true;
-  els.predictionBadge.hidden = true;
-  els.annotatedPlaceholder.hidden = false;
-  els.annotatedVideo.removeAttribute('src');
-  els.annotatedVideo.load();
+  if (els.predictionEmpty) els.predictionEmpty.hidden = false;
+  if (els.predictionResult) els.predictionResult.hidden = true;
+  if (els.predictionBadge) els.predictionBadge.hidden = true;
+  if (els.annotatedPlaceholder) els.annotatedPlaceholder.hidden = false;
+  if (els.annotatedVideo) {
+    els.annotatedVideo.removeAttribute('src');
+    els.annotatedVideo.load();
+  }
 }
 
 function renderPrediction(prediction) {
   const sortedScores = Object.entries(prediction.scores || {}).sort((a, b) => b[1] - a[1]);
   const topScore = sortedScores[0];
+
+  if (!els.predictionEmpty || !els.predictionResult) return;
 
   els.predictionEmpty.hidden = true;
   els.predictionResult.hidden = false;
@@ -141,7 +141,7 @@ function renderPrediction(prediction) {
     return `<div class="score"><span>${label}</span><div><i style="width:${Math.round(value * 100)}%"></i></div><b>${Math.round(value * 100)}%</b></div>`;
   }).join('');
 
-  if (topScore) {
+  if (topScore && els.predictionBadge) {
     els.predictionBadge.textContent = `${topScore[0]} · ${Math.round(topScore[1] * 100)}%`;
     els.predictionBadge.hidden = false;
   }
@@ -178,8 +178,8 @@ async function analyzeRecording() {
     state.annotatedUrl = state.recordedUrl;
     setStatus('Could not reach the prediction service, so a demo result is shown.');
   } finally {
-    els.annotatedVideo.src = state.annotatedUrl;
-    els.annotatedPlaceholder.hidden = true;
+    if (els.annotatedVideo) els.annotatedVideo.src = state.annotatedUrl;
+    if (els.annotatedPlaceholder) els.annotatedPlaceholder.hidden = true;
     els.analyzeVideo.textContent = '▣ Recognize Pain / Stress';
     els.analyzeVideo.disabled = false;
   }
