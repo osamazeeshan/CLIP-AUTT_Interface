@@ -8,64 +8,47 @@
   </head>
   <body>
     <main class="app-shell">
-      <section class="hero">
-        <div>
-          <p class="eyebrow">◈ CLIP-AUTT Interface</p>
-          <h1>Record a face video and recognize pain, stress, or neutral emotion.</h1>
-          <p>This page captures a short webcam video, sends it to your CLIP-AUTT model endpoint for video-level prediction, and displays the returned annotated video with face bounding boxes.</p>
-        </div>
-        <div class="status-card">
-          <span>Status</span>
-          <strong id="statusText">Camera is off. Turn it on to begin.</strong>
-          <em id="recordingTime" hidden>Recording time: 00:00</em>
-        </div>
-      </section>
-
       <div class="alert" id="cameraError" hidden></div>
 
-      <section class="video-grid">
-        <article class="panel">
-          <div class="panel-heading"><span>📷</span><div><h2>Live camera</h2><p>Turn on the camera and record the participant.</p></div></div>
-          <div class="video-frame live-frame">
-            <video id="liveVideo" autoplay muted playsinline></video>
-            <div class="placeholder" id="livePlaceholder">Camera preview will appear here</div>
-            <div class="recording-pill" id="recordingPill" hidden>● Recording 00:00</div>
-          </div>
-        </article>
+      <section class="camera-layout">
+        <div class="capture-column">
+          <article class="panel live-panel" aria-label="Live camera preview">
+            <div class="video-frame live-frame">
+              <video id="liveVideo" autoplay muted playsinline></video>
+              <div class="placeholder" id="livePlaceholder">Camera preview will appear here</div>
+              <div class="recording-pill" id="recordingPill" hidden>● Recording 00:00</div>
+            </div>
+          </article>
 
-        <article class="panel">
-          <div class="panel-heading"><span>🎥</span><div><h2>Recorded clip</h2><p>Review the clip before sending it to the model.</p></div></div>
-          <div class="video-frame">
-            <video id="previewVideo" controls playsinline></video>
-            <div class="placeholder" id="previewPlaceholder">Recorded video will appear here</div>
-          </div>
-        </article>
-      </section>
+          <section class="controls" aria-label="Recording controls">
+            <fieldset class="model-picker" aria-label="Model selection">
+              <legend>Choose model</legend>
+              <label><input type="radio" name="modelChoice" value="stress" checked /> Stress / Neutral</label>
+              <label><input type="radio" name="modelChoice" value="pain" /> Pain / Neutral</label>
+              <label><input type="radio" name="modelChoice" value="ambivalence" /> Ambivalence / Neutral</label>
+            </fieldset>
+            <div class="button-row">
+              <button id="turnOnCamera">📷 Turn On Camera</button>
+              <button id="recordVideo" class="primary" disabled>▶ Record Video</button>
+              <button id="stopRecording" class="danger" disabled>■ Stop Recording</button>
+              <button id="analyzeVideo" class="analyze" disabled>▣ Process Selected Model</button>
+            </div>
+          </section>
+        </div>
 
-      <section class="controls" aria-label="Recording controls">
-        <button id="turnOnCamera">📷 Turn On Camera</button>
-        <button id="recordVideo" class="primary" disabled>▶ Record Video</button>
-        <button id="stopRecording" class="danger" disabled>■ Stop Recording</button>
-        <button id="analyzeVideo" class="analyze" disabled>▣ Recognize Pain / Stress</button>
-      </section>
-
-      <section class="results">
-        <article class="panel result-video">
-          <div class="panel-heading"><span>▣</span><div><h2>Recognition playback</h2><p>Use your backend to return an annotated video URL with detected face bounding boxes.</p></div></div>
-          <div class="video-frame annotated-frame">
+        <article class="panel processed-panel" aria-label="Processed model video">
+          <div class="video-frame processed-frame">
             <video id="annotatedVideo" controls playsinline></video>
-            <div class="placeholder" id="annotatedPlaceholder">Annotated prediction video will appear here</div>
+            <div class="placeholder" id="annotatedPlaceholder">Processed model video will appear here</div>
             <div class="prediction-badge" id="predictionBadge" hidden></div>
           </div>
-        </article>
-
-        <article class="prediction-card">
-          <h2>Video-level prediction</h2>
-          <div id="predictionEmpty"><p>No prediction yet. Record a clip, then click Recognize Pain / Stress.</p></div>
-          <div id="predictionResult" hidden>
-            <strong class="label" id="predictionLabel"></strong>
-            <p id="predictionMessage"></p>
-            <div class="score-list" id="scoreList"></div>
+          <div class="prediction-summary">
+            <p id="predictionEmpty">Record a clip, choose a model, then process it.</p>
+            <div id="predictionResult" hidden>
+              <span>Detected state</span>
+              <strong id="predictionLabel"></strong>
+              <p id="predictionMessage"></p>
+            </div>
           </div>
         </article>
       </section>
