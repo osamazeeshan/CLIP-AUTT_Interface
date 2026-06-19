@@ -11,20 +11,46 @@
       <div class="alert" id="cameraError" hidden></div>
 
       <section class="camera-layout">
-        <article class="panel live-panel" aria-label="Live camera preview">
-          <div class="video-frame live-frame">
-            <video id="liveVideo" autoplay muted playsinline></video>
-            <div class="placeholder" id="livePlaceholder">Camera preview will appear here</div>
-            <div class="recording-pill" id="recordingPill" hidden>● Recording 00:00</div>
+        <div class="capture-column">
+          <article class="panel live-panel" aria-label="Live camera preview">
+            <div class="video-frame live-frame">
+              <video id="liveVideo" autoplay muted playsinline></video>
+              <div class="placeholder" id="livePlaceholder">Camera preview will appear here</div>
+              <div class="recording-pill" id="recordingPill" hidden>● Recording 00:00</div>
+            </div>
+          </article>
+
+          <section class="controls" aria-label="Recording controls">
+            <fieldset class="model-picker" aria-label="Model selection">
+              <legend>Choose model</legend>
+              <label><input type="radio" name="modelChoice" value="stress" checked /> Stress / Neutral</label>
+              <label><input type="radio" name="modelChoice" value="pain" /> Pain / Neutral</label>
+              <label><input type="radio" name="modelChoice" value="ambivalence" /> Ambivalence / Neutral</label>
+            </fieldset>
+            <div class="button-row">
+              <button id="turnOnCamera">📷 Turn On Camera</button>
+              <button id="recordVideo" class="primary" disabled>▶ Record Video</button>
+              <button id="stopRecording" class="danger" disabled>■ Stop Recording</button>
+              <button id="analyzeVideo" class="analyze" disabled>▣ Process Selected Model</button>
+            </div>
+          </section>
+        </div>
+
+        <article class="panel processed-panel" aria-label="Processed model video">
+          <div class="video-frame processed-frame">
+            <video id="annotatedVideo" controls playsinline></video>
+            <div class="placeholder" id="annotatedPlaceholder">Processed model video will appear here</div>
+            <div class="prediction-badge" id="predictionBadge" hidden></div>
+          </div>
+          <div class="prediction-summary">
+            <p id="predictionEmpty">Record a clip, choose a model, then process it.</p>
+            <div id="predictionResult" hidden>
+              <span>Detected state</span>
+              <strong id="predictionLabel"></strong>
+              <p id="predictionMessage"></p>
+            </div>
           </div>
         </article>
-
-        <section class="controls" aria-label="Recording controls">
-          <button id="turnOnCamera">📷 Turn On Camera</button>
-          <button id="recordVideo" class="primary" disabled>▶ Record Video</button>
-          <button id="stopRecording" class="danger" disabled>■ Stop Recording</button>
-          <button id="analyzeVideo" class="analyze" disabled>▣ Recognize Pain / Stress</button>
-        </section>
       </section>
     </main>
     <script type="module" src="src/main.js"></script>

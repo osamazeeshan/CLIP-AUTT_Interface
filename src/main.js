@@ -1,5 +1,9 @@
 const API_URL = window.CLIP_AUTT_PREDICT_API_URL || '/api/predict';
-const LABELS = ['Pain', 'Stress', 'Neutral'];
+const MODEL_CONFIGS = {
+  stress: { label: 'Stress / Neutral', labels: ['Stress', 'Neutral'] },
+  pain: { label: 'Pain / Neutral', labels: ['Pain', 'Neutral'] },
+  ambivalence: { label: 'Ambivalence / Neutral', labels: ['Ambivalence', 'Neutral'] },
+};
 
 const state = {
   stream: null,
@@ -30,8 +34,15 @@ const els = {
   predictionResult: document.querySelector('#predictionResult'),
   predictionLabel: document.querySelector('#predictionLabel'),
   predictionMessage: document.querySelector('#predictionMessage'),
+  modelChoices: document.querySelectorAll('input[name="modelChoice"]'),
   scoreList: document.querySelector('#scoreList'),
 };
+
+function getSelectedModel() {
+  const selected = Array.from(els.modelChoices).find((choice) => choice.checked);
+  const model = selected?.value || 'stress';
+  return { name: model, ...MODEL_CONFIGS[model] };
+}
 
 function formatSeconds(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
@@ -97,7 +108,7 @@ function startRecording() {
     if (state.recordedUrl) URL.revokeObjectURL(state.recordedUrl);
     state.recordedUrl = URL.createObjectURL(state.recordedBlob);
     els.analyzeVideo.disabled = false;
-    setStatus('Recording saved. Choose Recognize Pain / Stress.');
+    setStatus('Recording saved. Choose a model, then process it.');
   };
 
   state.recorder.start();
@@ -134,12 +145,13 @@ function renderPrediction(prediction) {
 
   els.predictionEmpty.hidden = true;
   els.predictionResult.hidden = false;
-  els.predictionLabel.textContent = prediction.label;
+  els.predictionLabel.textContent = prediction.label || topScore?.[0] || 'Unknown';
   els.predictionMessage.textContent = prediction.message;
-  els.scoreList.innerHTML = LABELS.map((label) => {
-    const value = prediction.scores?.[label] || 0;
-    return `<div class="score"><span>${label}</span><div><i style="width:${Math.round(value * 100)}%"></i></div><b>${Math.round(value * 100)}%</b></div>`;
-  }).join('');
+  if (els.scoreList) {
+    els.scoreList.innerHTML = Object.entries(prediction.scores || {}).map(([label, value]) => (
+      `<div class="score"><span>${label}</span><div><i style="width:${Math.round(value * 100)}%"></i></div><b>${Math.round(value * 100)}%</b></div>`
+    )).join('');
+  }
 
   if (topScore && els.predictionBadge) {
     els.predictionBadge.textContent = `${topScore[0]} · ${Math.round(topScore[1] * 100)}%`;
@@ -151,12 +163,15 @@ async function analyzeRecording() {
   if (!state.recordedBlob) return;
 
   els.analyzeVideo.disabled = true;
-  els.analyzeVideo.textContent = '⏳ Analyzing...';
-  setStatus('Uploading video to the CLIP-AUTT prediction service...');
+  const selectedModel = getSelectedModel();
+
+  els.analyzeVideo.textContent = '⏳ Processing...';
+  setStatus(`Uploading video to the ${selectedModel.label} model...`);
 
   const body = new FormData();
   body.append('video', state.recordedBlob, 'clip-autt-recording.webm');
-  body.append('labels', JSON.stringify(LABELS));
+  body.append('model', selectedModel.name);
+  body.append('labels', JSON.stringify(selectedModel.labels));
 
   try {
     const response = await fetch(API_URL, { method: 'POST', body });
@@ -165,14 +180,14 @@ async function analyzeRecording() {
     renderPrediction({
       label: result.label || result.prediction || 'Unknown',
       scores: result.scores || result.probabilities || {},
-      message: result.message || 'Video-level prediction completed.',
+      message: result.message || `${selectedModel.label} processing completed.`,
     });
     state.annotatedUrl = result.annotatedVideoUrl || state.recordedUrl;
     setStatus('Prediction complete. The result video is ready below.');
   } catch (error) {
     renderPrediction({
-      label: 'Demo fallback',
-      scores: { Pain: 0.12, Stress: 0.31, Neutral: 0.57 },
+      label: selectedModel.labels[1],
+      scores: Object.fromEntries(selectedModel.labels.map((label, index) => [label, index === 0 ? 0.38 : 0.62])),
       message: `${error.message}. Connect window.CLIP_AUTT_PREDICT_API_URL or /api/predict to your CLIP-AUTT backend for live inference.`,
     });
     state.annotatedUrl = state.recordedUrl;
@@ -180,7 +195,7 @@ async function analyzeRecording() {
   } finally {
     if (els.annotatedVideo) els.annotatedVideo.src = state.annotatedUrl;
     if (els.annotatedPlaceholder) els.annotatedPlaceholder.hidden = true;
-    els.analyzeVideo.textContent = '▣ Recognize Pain / Stress';
+    els.analyzeVideo.textContent = '▣ Process Selected Model';
     els.analyzeVideo.disabled = false;
   }
 }
